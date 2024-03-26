@@ -1,0 +1,14 @@
+### Get jobs
+GET http://localhost:4000/api/jobs
+Accept-Encoding: identity
+
+### Create new job
+POST http://localhost:4000/api/jobs
+Content-Type: application/json
+Accept-Encoding: identity
+
+{
+  "job": {
+    "queue_id": "{{$random.uuid}}"
+  }
+}
