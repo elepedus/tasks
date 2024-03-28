@@ -106,7 +106,6 @@ defmodule Tasks.Jobs do
     job
     |> Job.transition(%{status: "in progress"})
     |> Job.update_lease(%{leased_until: DateTime.now!("Etc/UTC") |> DateTime.add(job.timeout, :millisecond)})
-    |> dbg()
     |> Repo.update()
   end
 
@@ -115,7 +114,6 @@ defmodule Tasks.Jobs do
     |> Job.transition(%{status: "done"})
     |> Job.clear_lease()
     |> Job.result(%{result: result})
-    |> dbg()
     |> Repo.update()
   end
 
@@ -125,7 +123,6 @@ defmodule Tasks.Jobs do
     |> Job.transition(%{status: "submitted"})
     |> Job.result(%{result: result})
     |> Job.clear_lease()
-    |> dbg()
     |> Repo.update()
   end
   def failed(%Job{} = job, result)do
@@ -134,7 +131,6 @@ defmodule Tasks.Jobs do
     |> Job.transition(%{status: "failed"})
     |> Job.result(%{result: result})
     |> Job.clear_lease()
-    |> dbg()
     |> Repo.update()
   end
 end
