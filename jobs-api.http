@@ -9,6 +9,9 @@ Accept-Encoding: identity
 
 {
   "job": {
-    "queue_id": "{{$random.uuid}}"
+    "queue_id": "fibonacci",
+    "payload": {"n": {{$random.integer}}},
+    "priority": {{$random.integer(0,10}},
+    "timeout": {{$random.integer(10, 30000}}
   }
 }

@@ -20,7 +20,8 @@ defmodule Tasks.Application do
       # {Tasks.Worker, arg},
       # Start to serve requests, typically the last entry
       TasksWeb.Endpoint,
-      {Task.Supervisor ,name: Tasks.TaskSupervisor}
+      {Task.Supervisor, name: Tasks.TaskSupervisor},
+      Tasks.Queues
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
