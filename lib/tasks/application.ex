@@ -11,8 +11,7 @@ defmodule Tasks.Application do
       TasksWeb.Telemetry,
       Tasks.Repo,
       {Ecto.Migrator,
-        repos: Application.fetch_env!(:tasks, :ecto_repos),
-        skip: skip_migrations?()},
+       repos: Application.fetch_env!(:tasks, :ecto_repos), skip: skip_migrations?()},
       {DNSCluster, query: Application.get_env(:tasks, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Tasks.PubSub},
       # Start the Finch HTTP client for sending emails
@@ -20,7 +19,8 @@ defmodule Tasks.Application do
       # Start a worker by calling: Tasks.Worker.start_link(arg)
       # {Tasks.Worker, arg},
       # Start to serve requests, typically the last entry
-      TasksWeb.Endpoint
+      TasksWeb.Endpoint,
+      {Task.Supervisor ,name: Tasks.TaskSupervisor}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

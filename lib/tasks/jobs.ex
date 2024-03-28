@@ -101,4 +101,37 @@ defmodule Tasks.Jobs do
   def change_job(%Job{} = job, attrs \\ %{}) do
     Job.changeset(job, attrs)
   end
+
+  def start(%Job{} = job) do
+    job
+    |> Job.transition(%{status: "in progress"})
+    |> Job.update_lease(%{leased_until: DateTime.now!("Etc/UTC") |> DateTime.add(job.timeout, :millisecond)})
+    |> dbg()
+    |> Repo.update()
+  end
+
+  def done(%Job{} = job) do
+    job
+    |> Job.transition(%{status: "done"})
+    |> Job.clear_lease()
+    |> dbg()
+    |> Repo.update()
+  end
+
+  def failed(%Job{retries_left: r} = job) when r > 0 do
+    job
+    |> Job.strike(%{retries_left: r - 1})
+    |> Job.transition(%{status: "submitted"})
+    |> Job.clear_lease()
+    |> dbg()
+    |> Repo.update()
+  end
+  def failed(%Job{} = job)do
+    job
+    |> Job.strike(%{retries_left: 0})
+    |> Job.transition(%{status: "failed"})
+    |> Job.clear_lease()
+    |> dbg()
+    |> Repo.update()
+  end
 end

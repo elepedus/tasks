@@ -19,7 +19,30 @@ defmodule Tasks.Jobs.Job do
   @doc false
   def changeset(job, attrs) do
     job
-    |> cast(attrs, [:queue_id, :payload, :priority, :retries_left, :timeout, ])
-    |> validate_required([:queue_id, :priority, :retries_left, :timeout,])
+    |> cast(attrs, [:queue_id, :payload, :priority, :retries_left, :timeout])
+    |> validate_required([:queue_id, :priority, :retries_left, :timeout])
+  end
+
+  def transition(job, attrs) do
+    job
+    |> cast(attrs, [:status], force_changes: true)
+    |> validate_required([:status])
+  end
+
+  def strike(job, attrs) do
+    job
+    |> cast(attrs, [:retries_left])
+    |> validate_required([:retries_left])
+  end
+
+  def update_lease(job, attrs) do
+    job
+    |> cast(attrs, [:leased_until])
+    |> validate_required([:leased_until])
+  end
+
+  def clear_lease(job) do
+    job
+    |> force_change(:leased_until, nil)
   end
 end
