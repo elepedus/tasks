@@ -11,6 +11,7 @@ defmodule Tasks.Repo.Migrations.CreateJobs do
       add :retries_left, :integer
       add :timeout, :integer
       add :leased_until, :utc_datetime
+      add :result, :map
 
       timestamps(type: :utc_datetime)
     end

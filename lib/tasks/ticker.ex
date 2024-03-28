@@ -64,16 +64,16 @@ defmodule Tasks.Ticker do
         Task.shutdown(task)
 
         job
-        |> Jobs.failed()
+        |> Jobs.failed(%{error: "Timed out after #{job.timeout}ms"})
       else
         case result do
           {:ok, {:ok, response}} ->
             job
-            |> Jobs.done()
+            |> Jobs.done(%{success: response})
 
           {:ok, {:error, error}} ->
             job
-            |> Jobs.failed()
+            |> Jobs.failed(%{error: error})
         end
       end
       |> dbg()

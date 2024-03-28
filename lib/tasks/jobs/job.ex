@@ -12,6 +12,7 @@ defmodule Tasks.Jobs.Job do
     field :queue_id, :string
     field :retries_left, :integer, default: 3
     field :leased_until, :utc_datetime, default: nil
+    field :result, :map, default: nil
 
     timestamps(type: :utc_datetime)
   end
@@ -27,6 +28,12 @@ defmodule Tasks.Jobs.Job do
     job
     |> cast(attrs, [:status], force_changes: true)
     |> validate_required([:status])
+  end
+
+  def result(job, attrs) do
+    job
+    |> cast(attrs, [:result])
+    |> validate_required([:result])
   end
 
   def strike(job, attrs) do

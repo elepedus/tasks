@@ -110,26 +110,29 @@ defmodule Tasks.Jobs do
     |> Repo.update()
   end
 
-  def done(%Job{} = job) do
+  def done(%Job{} = job, result) do
     job
     |> Job.transition(%{status: "done"})
     |> Job.clear_lease()
+    |> Job.result(%{result: result})
     |> dbg()
     |> Repo.update()
   end
 
-  def failed(%Job{retries_left: r} = job) when r > 0 do
+  def failed(%Job{retries_left: r} = job, result) when r > 0 do
     job
     |> Job.strike(%{retries_left: r - 1})
     |> Job.transition(%{status: "submitted"})
+    |> Job.result(%{result: result})
     |> Job.clear_lease()
     |> dbg()
     |> Repo.update()
   end
-  def failed(%Job{} = job)do
+  def failed(%Job{} = job, result)do
     job
     |> Job.strike(%{retries_left: 0})
     |> Job.transition(%{status: "failed"})
+    |> Job.result(%{result: result})
     |> Job.clear_lease()
     |> dbg()
     |> Repo.update()

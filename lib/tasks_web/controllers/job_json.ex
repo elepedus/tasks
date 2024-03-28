@@ -24,7 +24,8 @@ defmodule TasksWeb.JobJSON do
       status: job.status,
       retries_left: job.retries_left,
       timeout: job.timeout,
-      leased_until: job.leased_until
+      leased_until: job.leased_until,
+      result: job.result
     }
   end
 end
