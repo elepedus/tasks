@@ -5,6 +5,9 @@ defmodule Tasks.Ticker do
   alias Tasks.Jobs
   alias Tasks.Repo
   alias Tasks.Queues.FibonacciQueue
+
+  @concurrency_limit 3
+
   @impl true
   def init(interval) do
     interval
@@ -26,45 +29,52 @@ defmodule Tasks.Ticker do
   end
 
   def process(%{queues: queues, delay: delay}) do
-    tasks =
+    jobs =
       Repo.all(
         from j in Job,
           where: j.queue_id in ^Map.keys(queues),
           where: j.status == "submitted",
           where: is_nil(j.leased_until) or j.leased_until < ^DateTime.now!("Etc/UTC"),
-          order_by: [asc: j.priority]
+          order_by: [asc: j.priority],
+          limit: ^@concurrency_limit
       )
       |> dbg
 
-    tasks
-    |> Enum.map(fn %Job{payload: payload, timeout: timeout, queue_id: queue_id} = job ->
-      task =
-        Task.Supervisor.async_nolink(Tasks.TaskSupervisor, fn ->
-          job
-          |> Jobs.start()
-          module = queues |> Map.get(queue_id)
+    results =
+      jobs
+      |> Enum.map(fn %Job{payload: payload, timeout: timeout, queue_id: queue_id} = job ->
+        task =
+          Task.Supervisor.async_nolink(Tasks.TaskSupervisor, fn ->
+            job
+            |> Jobs.start()
 
-          module.perform(payload)
-        end)
+            module = queues |> Map.get(queue_id)
 
-      case Task.yield(task, timeout) || Task.shutdown(task) do
-        {:ok, result} ->
-          case result do
-            {:ok, response} ->
-              job
-              |> Jobs.done()
+            module.perform(payload)
+          end)
+      end)
+      |> Task.yield_many(:infinity)
 
-            {:error, error} ->
-              job
-              |> Jobs.failed()
-          end
+    Enum.zip(jobs, results)
+    |> Enum.map(fn {job, {task, result}} = input ->
+      input
+      |> dbg()
 
-        nil ->
-          job
-          |> Jobs.failed()
+      if is_nil(result) do
+        Task.shutdown(task)
 
-          IO.puts("Failed to get a result in #{timeout}ms")
-          nil
+        job
+        |> Jobs.failed()
+      else
+        case result do
+          {:ok, {:ok, response}} ->
+            job
+            |> Jobs.done()
+
+          {:ok, {:error, error}} ->
+            job
+            |> Jobs.failed()
+        end
       end
       |> dbg()
     end)
