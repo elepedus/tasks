@@ -1,16 +1,21 @@
 defmodule Tasks.Worker do
+  @moduledoc """
+  A generic worker process that polls for jobs matching the specified queue, runs them, and saves the results.
+  """
+
   use GenServer
   import Ecto.Query
   alias Tasks.Jobs.Job
   alias Tasks.Jobs
   alias Tasks.Repo
+  alias Tasks.Queues.Queue
 
-  def start_link(queue, name \\ __MODULE__) do
+  def start_link(%Queue{} = queue, name \\ __MODULE__) do
     GenServer.start_link(__MODULE__, queue, name: name)
   end
 
   @impl true
-  def init(queue) do
+  def init(%Queue{} = queue) do
     schedule_tick(queue.interval)
     {:ok, %{queue: queue}}
   end
@@ -23,11 +28,11 @@ defmodule Tasks.Worker do
     {:noreply, state}
   end
 
-  def schedule_tick(delay) do
+  defp schedule_tick(delay) do
     Process.send_after(self(), {:tick, delay}, delay)
   end
 
-  def process(%{queue: queue}) do
+  defp process(%{queue: %Queue{} = queue}) do
     query =
       from j in Job,
         where: j.queue_id == ^queue.id,

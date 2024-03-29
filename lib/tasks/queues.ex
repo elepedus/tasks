@@ -3,10 +3,11 @@ defmodule Tasks.Queues do
     The Queues context
   """
   use Supervisor
+  alias Tasks.Queues.Queue
 
   @queues [
-    %{id: "fibonacci", module: Tasks.Queues.FibonacciQueue, interval: 1000, workers: 3},
-    %{id: "sleeper", module: Tasks.Queues.SleepyQueue, interval: 1000, workers: 3}
+    %Queue{id: "fibonacci", module: Tasks.Queues.FibonacciQueue, interval: 1000, workers: 3},
+    %Queue{id: "sleeper", module: Tasks.Queues.SleepyQueue, interval: 1000, workers: 3}
   ]
 
   def start_link(arg) do
