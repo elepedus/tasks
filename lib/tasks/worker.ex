@@ -43,7 +43,7 @@ defmodule Tasks.Worker do
 
   defp process_job(job, _) when is_nil(job), do: nil
 
-  defp process_job(%Job{payload: payload, timeout: timeout, queue_id: queue_id} = job, module) do
+  defp process_job(%Job{payload: payload, timeout: timeout} = job, module) do
     task =
       Task.Supervisor.async_nolink(Tasks.TaskSupervisor, fn ->
         job
