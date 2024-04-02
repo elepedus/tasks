@@ -52,7 +52,7 @@ defmodule Tasks.Worker do
     task =
       Task.Supervisor.async_nolink(Tasks.TaskSupervisor, fn ->
         job
-        |> Jobs.start()
+        |> Jobs.start_job()
 
         module.perform(payload)
       end)
@@ -68,17 +68,17 @@ defmodule Tasks.Worker do
 
   defp handle_result(job, {:ok, response}) do
     job
-    |> Jobs.done(%{success: response})
+    |> Jobs.complete_job(%{success: response})
   end
 
   defp handle_result(job, {:error, error}) do
     job
-    |> Jobs.failed(%{error: error})
+    |> Jobs.fail_job(%{error: error})
   end
 
   defp handle_timeout(job) do
     job
-    |> Jobs.failed(%{error: "Timed out after #{job.timeout}ms"})
+    |> Jobs.fail_job(%{error: "Timed out after #{job.timeout}ms"})
 
     nil
   end

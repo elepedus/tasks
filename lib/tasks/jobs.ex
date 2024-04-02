@@ -105,10 +105,10 @@ defmodule Tasks.Jobs do
   @doc """
   Sets a job's status to 'in progress' and leases it out for a period equal to its configured timeout
   ## Examples
-      iex> start(job)
+      iex> start_job(job)
       %Job{}
   """
-  def start(%Job{} = job) do
+  def start_job(%Job{} = job) do
     job
     |> Job.transition(%{status: "in progress"})
     |> Job.update_lease(%{
@@ -120,10 +120,10 @@ defmodule Tasks.Jobs do
   @doc """
   Sets a job's status to "done", clears its lease, and saves the job's returned result
   ## Examples
-      iex> done(job)
+      iex> complete_job(job)
       %Job{}
   """
-  def done(%Job{} = job, result) do
+  def complete_job(%Job{} = job, result) do
     job
     |> Job.transition(%{status: "done"})
     |> Job.clear_lease()
@@ -140,10 +140,10 @@ defmodule Tasks.Jobs do
   When the job has no remaining retries, sets the job's status to "failed", clears its lease and saves the job's returned
   error.
   ## Examples
-      iex> failed(job)
+      iex> fail_job(job)
       %Job{}
   """
-  def failed(%Job{retries_left: r} = job, result) when r > 0 do
+  def fail_job(%Job{retries_left: r} = job, result) when r > 0 do
     job
     |> Job.strike(%{retries_left: r - 1})
     |> Job.transition(%{status: "submitted"})
@@ -152,7 +152,7 @@ defmodule Tasks.Jobs do
     |> Repo.update()
   end
 
-  def failed(%Job{} = job, result) do
+  def fail_job(%Job{} = job, result) do
     job
     |> Job.strike(%{retries_left: 0})
     |> Job.transition(%{status: "failed"})
